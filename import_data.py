@@ -25,9 +25,19 @@ def read_post(posts, user_id):
         es.index(index="facebook", doc_type="post", id=post['id'], body=post_dict)
 
         if 'comments' in post:
-            read_comment(post['comments']['data'], post_id)
+            read_comment(post['comments']['data'], post['id'])
 
 def read_comment(comments, post_id):
+    for comment in comments:
+        comment_dict = {
+            'post_id': post_id,
+            'id': comment['id'],
+            'message': comment['message'],
+            'created_time': comment['created_time'],
+            'from': comment['from']
+        }
+        print(comment_dict)
+        es.index(index="facebook", doc_type="comments", id=comment['id'], body=comment_dict)
 
 
 def import_data():
