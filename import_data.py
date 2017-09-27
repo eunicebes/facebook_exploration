@@ -8,46 +8,53 @@ import os
 
 es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 folder = './data/'
+gender_dict = {"男性":"male", "女性":"female", "male":"male", "female":"female"}
 
 def read_post(posts, user_id):
     for post in posts:
-        post_dic = {
+        post_dict = {
             'user_id': user_id,
             'id': post['id'],
             'story': post['story'],
-            'message': post['message'],
+            'message': post['message'] if 'message' in post else '',
             'created_time': post['created_time'],
             'reactions': post['reactions']['data']
             #'comments': post['comments']['data'] if 'comments' in post else []
         }
-        print(post_dic)
-        es.index(index="facebook", doc_type="post", id=post['id'], body=post_dic)
+        # print(post_dict)
+        es.index(index="facebook", doc_type="post", id=post['id'], body=post_dict)
+
+        if 'comments' in post:
+            read_comment(post['comments']['data'], post_id)
+
+def read_comment(comments, post_id):
 
 
-gender_dict = {"男性":"male", "女性":"female", "male":"male", "female":"female"}
-
-#Retrieve data from file
-for file_name in os.listdir(folder):
-    # print(file_name)
-    with open(folder + file_name) as file:
+def import_data():
+    # Get all file names
+    for file_name in os.listdir(folder):
         # print(file_name)
-        for i, line in enumerate(file.readlines()):
-            # print(i)
-            try:
-                data = json.loads(line)
-                # print(data['id'])
+        with open(folder + file_name) as file:
+            for i, line in enumerate(file.readlines()):
                 try:
-                    document = {
-                        'id': data['id'],
-                        'name': data['name'],
-                        'gender': gender_dict[data['gender']]
-                    }
+                    data = json.loads(line)
+                    # print(data['id'])
+                    if 'name' in data and 'gender' in data:
+                        document = {
+                            'id': data['id'],
+                            'name': data['name'],
+                            'gender': gender_dict[data['gender']]
+                        }
+                        # Insert or update user profile in elasticsearch
+                        es.index(index="facebook", doc_type="user", id=data['id'], body=document)
+
                     read_post(data['posts']['data'], data['id'])
-                    es.index(index="facebook", doc_type="user", id=data['id'], body=document)
+                        
                 except:
-                    read_post(data['posts']['data'], data['id'])
+                    # print(line)
                     continue
-            except:
-                # print(line)
-                continue
-           
+
+if __name__ == "__main__":
+    
+    #Retrieve data from file
+    import_data()           
