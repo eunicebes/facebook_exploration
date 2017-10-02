@@ -36,14 +36,14 @@ def read_comment(comments, post_id):
             'created_time': comment['created_time'],
             'from': comment['from']
         }
-        print(comment_dict)
+        # print(comment_dict)
         es.index(index="facebook", doc_type="comments", id=comment['id'], body=comment_dict)
 
 
 def import_data():
     # Get all file names
     for file_name in os.listdir(folder):
-        # print(file_name)
+        print(file_name)
         with open(folder + file_name) as file:
             for i, line in enumerate(file.readlines()):
                 try:
