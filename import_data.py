@@ -15,13 +15,12 @@ def read_post(posts, user_id):
         post_dict = {
             'user_id': user_id,
             'id': post['id'],
-            'story': post['story'],
+            'story': post['story'] if 'story' in post else '',
             'message': post['message'] if 'message' in post else '',
-            'created_time': post['created_time'],
-            'reactions': post['reactions']['data']
+            'created_time': post['created_time']
             #'comments': post['comments']['data'] if 'comments' in post else []
         }
-        # print(post_dict)
+        #print(post_dict)
         es.index(index="facebook", doc_type="post", id=post['id'], body=post_dict)
 
         if 'comments' in post:
